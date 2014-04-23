@@ -1,16 +1,14 @@
 CREATE OR REPLACE PACKAGE SHA256 IS
-/* 
+/*
    Oracle PL/SQL Package to compute SHA256 message digest of files or memory blocks.
    according to the definition of SHA256 in FIPS 180-2.
 
-   Currently, this implementation works only under 56bytes message.
-
-   Written by Steve Jang <cruiserx@hanmail.net>, 2014.  
+   Written by Steve Jang <cruiserx@hanmail.net>, 2014.
 */
-  
+
     -- type declarations
     TYPE ta_number IS TABLE OF NUMBER INDEX BY binary_integer;
-  
+
     TYPE tr_ctx IS RECORD (
         H     TA_NUMBER, --//8
         total TA_NUMBER, --//2
@@ -55,8 +53,8 @@ CREATE OR REPLACE PACKAGE SHA256 IS
        initialization function update the context for the next LEN bytes
        starting at BUFFER.
        It is NOT required that LEN is a multiple of 64.  */
-    PROCEDURE sha256_process_bytes (buffer IN VARCHAR2, 
-                                      len IN NUMBER, 
+    PROCEDURE sha256_process_bytes (buffer IN VARCHAR2,
+                                      len IN NUMBER,
                                       ctx IN OUT NOCOPY TR_CTX);
 
 
@@ -72,7 +70,7 @@ CREATE OR REPLACE PACKAGE SHA256 IS
 
        IMPORTANT: On some systems it is required that RESBUF is correctly
        aligned for a 32 bits value.  */
-    PROCEDURE sha256_finish_ctx (ctx IN OUT NOCOPY TR_CTX, 
+    PROCEDURE sha256_finish_ctx (ctx IN OUT NOCOPY TR_CTX,
                                    resbuf OUT NOCOPY TA_NUMBER);
 
     FUNCTION BITOR (x IN NUMBER, y IN NUMBER) RETURN NUMBER;
