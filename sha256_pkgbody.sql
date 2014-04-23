@@ -1,11 +1,9 @@
 CREATE OR REPLACE PACKAGE BODY SHA256 IS
-/* 
+/*
    Oracle PL/SQL Package to compute SHA256 message digest of files or memory blocks.
    according to the definition of SHA256 in FIPS 180-2.
 
-   Currently, this implementation works only under 56bytes message.
-
-   Written by Steve Jang <cruiserx@hanmail.net>, 2014.  
+   Written by Steve Jang <cruiserx@hanmail.net>, 2014.
 */
 
     FUNCTION BITOR (x IN NUMBER, y IN NUMBER) RETURN NUMBER AS
@@ -63,7 +61,7 @@ CREATE OR REPLACE PACKAGE BODY SHA256 IS
                      BITAND(x,z)
                   ),
                   BITAND(y,z)
-               ); 
+               );
     END;
 
     FUNCTION OP_S0(x IN NUMBER) RETURN NUMBER AS
@@ -113,8 +111,8 @@ CREATE OR REPLACE PACKAGE BODY SHA256 IS
 
     /* Initialize structure containing state of computation.
        (FIPS 180-2: 5.3.2)  */
-    PROCEDURE sha256_init_ctx (ctx IN OUT NOCOPY TR_CTX) 
-    IS 
+    PROCEDURE sha256_init_ctx (ctx IN OUT NOCOPY TR_CTX)
+    IS
     BEGIN
         ctx.H(0) := to_number('6a09e667', 'xxxxxxxx');
         ctx.H(1) := to_number('bb67ae85', 'xxxxxxxx');
@@ -240,10 +238,10 @@ CREATE OR REPLACE PACKAGE BODY SHA256 IS
        initialization function update the context for the next LEN bytes
        starting at BUFFER.
        It is NOT required that LEN is a multiple of 64.  */
-    PROCEDURE sha256_process_bytes (buffer IN VARCHAR2, 
-                                      len IN NUMBER, 
+    PROCEDURE sha256_process_bytes (buffer IN VARCHAR2,
+                                      len IN NUMBER,
                                       ctx IN OUT NOCOPY TR_CTX)
-    IS 
+    IS
         left_over NUMBER;
         left_over_blk NUMBER;
         left_over_mod NUMBER;
@@ -259,7 +257,7 @@ CREATE OR REPLACE PACKAGE BODY SHA256 IS
 
             left_over := ctx.buflen;
             add := CASE WHEN 128 - left_over > t_len THEN t_len ELSE 128 - left_over END;
-        
+
             FOR idx IN 1..add LOOP
                 left_over_blk := trunc((left_over+idx-1)/4);
                 left_over_mod := mod((left_over+idx-1), 4);
@@ -278,12 +276,12 @@ CREATE OR REPLACE PACKAGE BODY SHA256 IS
             ctx.buflen := ctx.buflen + add;
 
             IF (ctx.buflen > 64) THEN
-                sha256_process_block (ctx.buffer32, BITAND(ctx.buflen, bits_FFFFFFC0), ctx); 
+                sha256_process_block (ctx.buffer32, BITAND(ctx.buflen, bits_FFFFFFC0), ctx);
 
                 ctx.buflen := BITAND(ctx.buflen, 63);
 
                 /* The regions in the following copy operation cannot overlap.  */
-                /* memcpy (ctx->buffer, £¦ctx->buffer[(left_over + add) £¦ ~63], ctx->buflen); */
+                /* memcpy (ctx->buffer, ï¿¡|ctx->buffer[(left_over + add) ï¿¡| ~63], ctx->buflen); */
                 FOR idx IN 1..ctx.buflen LOOP
                     DECLARE
                         dest_pos NUMBER := idx-1;
@@ -296,15 +294,15 @@ CREATE OR REPLACE PACKAGE BODY SHA256 IS
                     BEGIN
 
                         IF (src_pos_mod=0) THEN
-                            byte_value := BITAND(ctx.buffer32(src_pos_blk),bits_FF000000)/16777216; 
+                            byte_value := BITAND(ctx.buffer32(src_pos_blk),bits_FF000000)/16777216;
                         ELSIF (src_pos_mod=1) THEN
-                            byte_value := BITAND(ctx.buffer32(src_pos_blk),bits_00FF0000)/65536; 
+                            byte_value := BITAND(ctx.buffer32(src_pos_blk),bits_00FF0000)/65536;
                         ELSIF (src_pos_mod=2) THEN
-                            byte_value := BITAND(ctx.buffer32(src_pos_blk),bits_0000FF00)/256; 
+                            byte_value := BITAND(ctx.buffer32(src_pos_blk),bits_0000FF00)/256;
                         ELSE
-                            byte_value := BITAND(ctx.buffer32(src_pos_blk),bits_000000FF); 
+                            byte_value := BITAND(ctx.buffer32(src_pos_blk),bits_000000FF);
                         END IF;
-                        
+
                         IF (dest_pos_mod=0) THEN
                             ctx.buffer32(dest_pos_blk) := BITAND(ctx.buffer32(dest_pos_blk),bits_00FFFFFF) + byte_value*16777216;
                         ELSIF (dest_pos_mod=1) THEN
@@ -350,7 +348,7 @@ CREATE OR REPLACE PACKAGE BODY SHA256 IS
                     END IF;
                 END LOOP;
                 sha256_process_block (x_buffer32, cnt, ctx);
-                t_buffer := substr(t_buffer, BITAND(t_len, cnt+1));
+                t_buffer := substr(t_buffer, cnt+1);
             END;
 
             t_len := BITAND(t_len, 63);
@@ -363,7 +361,7 @@ CREATE OR REPLACE PACKAGE BODY SHA256 IS
 
             left_over := ctx.buflen;
 
-            /* memcpy (£¦ctx->buffer[left_over], t_buffer, t_len); */
+            /* memcpy (ï¿¡|ctx->buffer[left_over], t_buffer, t_len); */
             FOR idx IN 1..t_len LOOP
                 left_over_blk := trunc((left_over+idx-1)/4);
                 left_over_mod := mod((left_over+idx-1), 4);
@@ -386,7 +384,7 @@ CREATE OR REPLACE PACKAGE BODY SHA256 IS
                 sha256_process_block (ctx.buffer32, 64, ctx);
                 left_over := left_over - 64;
 
-                /* memcpy (ctx->buffer, £¦ctx->buffer[64], left_over); */
+                /* memcpy (ctx->buffer, ï¿¡|ctx->buffer[64], left_over); */
                 FOR idx IN 1..left_over LOOP
                     DECLARE
                         dest_pos NUMBER := idx-1;
@@ -399,15 +397,15 @@ CREATE OR REPLACE PACKAGE BODY SHA256 IS
                     BEGIN
 
                         IF (src_pos_mod=0) THEN
-                            byte_value := BITAND(ctx.buffer32(src_pos_blk),bits_FF000000)/16777216; 
+                            byte_value := BITAND(ctx.buffer32(src_pos_blk),bits_FF000000)/16777216;
                         ELSIF (src_pos_mod=1) THEN
-                            byte_value := BITAND(ctx.buffer32(src_pos_blk),bits_00FF0000)/65536; 
+                            byte_value := BITAND(ctx.buffer32(src_pos_blk),bits_00FF0000)/65536;
                         ELSIF (src_pos_mod=2) THEN
-                            byte_value := BITAND(ctx.buffer32(src_pos_blk),bits_0000FF00)/256; 
+                            byte_value := BITAND(ctx.buffer32(src_pos_blk),bits_0000FF00)/256;
                         ELSE
-                            byte_value := BITAND(ctx.buffer32(src_pos_blk),bits_000000FF); 
+                            byte_value := BITAND(ctx.buffer32(src_pos_blk),bits_000000FF);
                         END IF;
-                        
+
                         IF (dest_pos_mod=0) THEN
                             ctx.buffer32(dest_pos_blk) := BITAND(ctx.buffer32(dest_pos_blk),bits_00FFFFFF) + byte_value*16777216;
                         ELSIF (dest_pos_mod=1) THEN
@@ -431,9 +429,9 @@ CREATE OR REPLACE PACKAGE BODY SHA256 IS
 
        IMPORTANT: On some systems it is required that RESBUF is correctly
        aligned for a 32 bits value.  */
-    PROCEDURE sha256_finish_ctx (ctx IN OUT NOCOPY TR_CTX, 
+    PROCEDURE sha256_finish_ctx (ctx IN OUT NOCOPY TR_CTX,
                                    resbuf OUT NOCOPY TA_NUMBER)
-    IS 
+    IS
         bytes NUMBER := ctx.buflen;
         pad NUMBER;
         pad_in NUMBER;
@@ -478,7 +476,7 @@ CREATE OR REPLACE PACKAGE BODY SHA256 IS
 
         /* Put the 64-bit file length in *bits* at the end of the buffer.  */
         ctx.buffer32((bytes + pad + 4) / 4) :=  BITAND(ctx.total(1) * 8, fullbits);
-        ctx.buffer32((bytes + pad) / 4) := 
+        ctx.buffer32((bytes + pad) / 4) :=
             BITOR (
                 BITAND(ctx.total(0) * 8, fullbits),
                 BITAND(ctx.total(1) / 536870912, fullbits)
@@ -499,7 +497,7 @@ CREATE OR REPLACE PACKAGE BODY SHA256 IS
 
         sha256_process_bytes(x, length(x), ctx);
 
-        sha256_finish_ctx(ctx, res);        
+        sha256_finish_ctx(ctx, res);
 
         RETURN
             to_char(res(0),'FM0xxxxxxx') ||
