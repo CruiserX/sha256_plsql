@@ -139,6 +139,8 @@ CREATE OR REPLACE PACKAGE BODY SHA256 IS
     IS
         words TA_NUMBER := buffer;
         nwords NUMBER := trunc(len / 4);
+        pos_words NUMBER;
+
         t NUMBER;
         a NUMBER := ctx.H(0);
         b NUMBER := ctx.H(1);
@@ -171,7 +173,7 @@ CREATE OR REPLACE PACKAGE BODY SHA256 IS
 
         /* Process all bytes in the buffer with 64 bytes in each round of
          the loop.  */
-
+        pos_words := 0;
         WHILE (nwords > 0)
         LOOP
             a_save := a;
@@ -185,7 +187,8 @@ CREATE OR REPLACE PACKAGE BODY SHA256 IS
 
             /* Compute the message schedule according to FIPS 180-2:6.2.2 step 2.  */
             FOR t IN 0..15 LOOP
-                W(t) := words(t);
+                W(t) := words(pos_words);
+                pos_words := pos_words + 1;
             END LOOP;
 
             FOR t IN 16..63 LOOP
