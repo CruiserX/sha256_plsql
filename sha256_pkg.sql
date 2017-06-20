@@ -2,7 +2,7 @@ CREATE OR REPLACE PACKAGE SHA256 IS
 /*
     Oracle PL/SQL Package to compute SHA256 message digest of files or memory blocks.
     according to the definition of SHA256 in FIPS 180-2.
-    
+
     Copyright (C) 2014, Steve Jang <cruiserx@hanmail.net>
 
     This library is free software; you can redistribute it and/or
@@ -67,7 +67,7 @@ CREATE OR REPLACE PACKAGE SHA256 IS
        initialization function update the context for the next LEN bytes
        starting at BUFFER.
        It is NOT required that LEN is a multiple of 64.  */
-    PROCEDURE sha256_process_bytes (buffer IN VARCHAR2,
+    PROCEDURE sha256_process_bytes (buffer IN RAW,
                                       len IN NUMBER,
                                       ctx IN OUT NOCOPY TR_CTX);
 
@@ -105,6 +105,7 @@ CREATE OR REPLACE PACKAGE SHA256 IS
 
     /* Final Function */
     FUNCTION ENCRYPT(x IN VARCHAR2) RETURN VARCHAR2;
+    FUNCTION ENCRYPT_RAW(x IN RAW) RETURN VARCHAR2;
 
 END SHA256;
 /
