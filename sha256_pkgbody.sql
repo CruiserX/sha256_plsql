@@ -298,7 +298,7 @@ CREATE OR REPLACE PACKAGE BODY SHA256 IS
                 ctx.buflen := BITAND(ctx.buflen, 63);
 
                 /* The regions in the following copy operation cannot overlap.  */
-                /* memcpy (ctx->buffer, &ctx->buffer[(left_over + add) & ~63], ctx->buflen); */
+                /* memcpy (ctx->buffer, & ctx->buffer[(left_over + add) & ~63], ctx->buflen); */
                 FOR idx IN 1..ctx.buflen LOOP
                     DECLARE
                         dest_pos NUMBER := idx-1;
@@ -378,7 +378,7 @@ CREATE OR REPLACE PACKAGE BODY SHA256 IS
 
             left_over := ctx.buflen;
 
-            /* memcpy (&ctx->buffer[left_over], t_buffer, t_len); */
+            /* memcpy (& ctx->buffer[left_over], t_buffer, t_len); */
             FOR idx IN 1..t_len LOOP
                 left_over_blk := trunc((left_over+idx-1)/4);
                 left_over_mod := mod((left_over+idx-1), 4);
@@ -401,7 +401,7 @@ CREATE OR REPLACE PACKAGE BODY SHA256 IS
                 sha256_process_block (ctx.buffer32, 64, ctx);
                 left_over := left_over - 64;
 
-                /* memcpy (ctx->buffer, &ctx->buffer[64], left_over); */
+                /* memcpy (ctx->buffer, & ctx->buffer[64], left_over); */
                 FOR idx IN 1..left_over LOOP
                     DECLARE
                         dest_pos NUMBER := idx-1;
