@@ -365,7 +365,11 @@ CREATE OR REPLACE PACKAGE BODY SHA256 IS
                     END IF;
                 END LOOP;
                 sha256_process_block (x_buffer32, cnt, ctx);
-                t_buffer := utl_raw.substr(t_buffer, cnt+1);
+                IF (utl_raw.length(t_buffer) >= cnt) THEN
+                	t_buffer := '';
+                ELSE
+	                t_buffer := utl_raw.substr(t_buffer, cnt+1);
+				END IF;
             END;
 
             t_len := BITAND(t_len, 63);
